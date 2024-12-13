@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <link rel="stylesheet" href="css/general.css">
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+      <script type="text/javascript" src="https://jeremyfagis.github.io/dropify/dist/js/dropify.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://jeremyfagis.github.io/dropify/dist/css/dropify.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #357ABD;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .card-header {
+            background-color: #4a90e2;
+            color: #fff;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .custom-file-input::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+
+        .custom-file-input::before {
+            content: 'Seleccionar Imagen';
+            display: inline-block;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8 col-sm-10">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h1>Editar Producto</h1>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <form method="PUT" id="EditarProducto">
+                            <input type="hidden" value="{{$idProducto}}" id="idProducto">
+                            <div class="mb-4">
+                                <label for="productName" class="form-label" >Nombre del producto</label>
+                                <input type="text" class="form-control" id="tituloProducto" name="nombre" placeholder="Nombre del producto" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="productDescription" class="form-label" >Descripción del producto</label>
+                                <textarea class="form-control" id="descripcionProducto" name="descripcion" rows="4" placeholder="Escribe una breve descripción del producto" required></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="productImage" class="form-label" >Imagen del producto</label>
+                                <input type="file" class="dropify" name="imagen" data-height="100" id="imagen_producto"/>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="productPrice" class="form-label" >Precio del producto</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="precioProducto" name="precio" placeholder="precio" step="0.01" min="0" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Editar Producto</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <Script>
+         $('.dropify').dropify();
+        const idProducto=document.getElementById('idProducto').value;
+        let nombre,precio,imagen;
+        console.log(idProducto)
+        fetch(`http://127.0.0.1:8000/api/product/${idProducto}`)
+        .then(res=>res.json())
+        .then(response=>{
+            console.log(response)
+            nombre=response.nombre
+            precio=response.precio
+            imagen=response.imagen
+
+            document.getElementById('tituloProducto').value=nombre;
+            document.getElementById('descripcionProducto').value=response.descripcion;
+            document.getElementById('precioProducto').value=precio;
+            var drEvent = $('.dropify').dropify({
+            defaultFile: imagen  // Puedes cambiar esta ruta dinámicamente
+            });
+
+            // Por ejemplo, cambiar la imagen predeterminada más tarde
+            drEvent = drEvent.data('dropify');
+            drEvent.settings.defaultFile = imagen;
+            drEvent.destroy();  // Destruir la instancia actual
+            drEvent.init();     // Inicializar con la nueva configuración
+        })
+
+
+    const formulario=document.getElementById('EditarProducto');
+    formulario.addEventListener('submit',function(e){
+        e.preventDefault();
+        const file_product=imagen_producto.files[0];
+      
+        const formData = new FormData(this);
+        formData.append('imagen',file_product);
+        console.log(formData);
+
+      
+        fetch(`http://127.0.0.1:8000/api/actualizarproduct/${idProducto}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json()) 
+        .then(data => {
+            Swal.fire({
+                title: "Producto modificado",
+                text: "se modifico correctamente",
+                icon: "success"
+            });
+
+            console.log('Success:', data);
+        })
+    
+
+    })
+
+
+
+    </Script>
+</body>
+</html>
